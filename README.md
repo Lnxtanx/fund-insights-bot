@@ -3,7 +3,7 @@
 A powerful, AI-driven financial analysis tool that uses **Hybrid RAG (Retrieval Augmented Generation)** to answer complex questions about your investment portfolio.
 
 **Built by [Vivek Kumar Yadav](https://cv.vivekmind.com)**
-GitHub: [Link](https://github.com/vivekmind)
+GitHub: [Link](https://github.com/Lnxtanx/fund-insights-bot)
 
 ---
 
