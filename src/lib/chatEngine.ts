@@ -2,7 +2,7 @@ import { Holding, Trade } from '@/types/finance';
 import { calculateGlobalStats, formatGlobalStats } from './dataProcessor';
 import { generateIndex, searchContext } from './ragEngine';
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+// API Key handled on server
 
 interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -48,9 +48,7 @@ export async function processQuestionWithAI(
   trades: Trade[],
   conversationHistory: ChatMessage[] = []
 ): Promise<string> {
-  if (!OPENAI_API_KEY) {
-    return "⚠️ OpenAI API key not configured.";
-  }
+  // API Key check handled on server
 
   // 1. Calculate Global Stats (Cheap & Fast)
   // We re-calc this every time or could cache it, but it's fast enough.
@@ -76,11 +74,11 @@ export async function processQuestionWithAI(
 
   try {
     // Only using gpt-4o-mini or turbo is fine now because context is small!
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Only using gpt-4o-mini or turbo is fine now because context is small!
+    const response = await fetch('/api/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: 'gpt-4o', // or gpt-4-turbo

@@ -1,6 +1,6 @@
 import { Holding, Trade } from '@/types/finance';
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+// API Key is now handled securely on the server side /api/embeddings
 
 export interface EmbeddedItem {
     id: string;
@@ -29,13 +29,11 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
 
 // Generate Embedding for a single string
 async function getEmbedding(text: string): Promise<number[]> {
-    if (!OPENAI_API_KEY) throw new Error("Missing API Key");
 
-    const response = await fetch('https://api.openai.com/v1/embeddings', {
+    const response = await fetch('/api/embeddings', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${OPENAI_API_KEY}`
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({
             input: text,
@@ -142,11 +140,10 @@ export async function generateIndex(holdings: Holding[], trades: Trade[], onProg
         const batch = items.slice(i, i + BATCH_SIZE);
 
         try {
-            const response = await fetch('https://api.openai.com/v1/embeddings', {
+            const response = await fetch('/api/embeddings', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${OPENAI_API_KEY}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     input: batch.map(b => b.text),
