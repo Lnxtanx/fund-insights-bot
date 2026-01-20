@@ -5,8 +5,7 @@ import { processQuestion } from '@/lib/chatEngine';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { DataStats } from './DataStats';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Bot } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 export function FinanceChatbot() {
   const { holdings, trades, isLoading, error } = useFinanceData();
@@ -15,11 +14,10 @@ export function FinanceChatbot() {
 
   useEffect(() => {
     if (!isLoading && holdings.length > 0 && messages.length === 0) {
-      // Add welcome message
       setMessages([{
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `👋 Welcome to the Finance Data Assistant!\n\nI've loaded **${holdings.length.toLocaleString()}** holdings and **${trades.length.toLocaleString()}** trades for analysis.\n\nYou can ask me questions like:\n• "Total holdings for Garfield"\n• "Which funds performed best?"\n• "Show me trade types breakdown"\n• "What's the P&L for Ytum?"\n\nHow can I help you today?`,
+        content: `👋 Welcome! I'm your Finance Data Assistant.\n\nI've loaded **${holdings.length.toLocaleString()}** holdings and **${trades.length.toLocaleString()}** trades for analysis.\n\nYou can ask me questions like:\n• "Total holdings for Garfield"\n• "Which funds performed best?"\n• "Show me trade types breakdown"\n• "What's the P&L for Ytum?"\n\nHow can I help you today?`,
         timestamp: new Date(),
       }]);
     }
@@ -41,7 +39,6 @@ export function FinanceChatbot() {
 
     setMessages(prev => [...prev, userMessage]);
 
-    // Process the question and generate response
     setTimeout(() => {
       const response = processQuestion(input, holdings, trades);
       const assistantMessage: Message = {
@@ -63,38 +60,30 @@ export function FinanceChatbot() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-background rounded-xl border border-border shadow-lg overflow-hidden">
+    <div className="flex flex-col h-screen bg-background">
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 border-b border-border bg-muted/30">
-        <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-          <Bot className="w-5 h-5 text-primary-foreground" />
-        </div>
-        <div>
-          <h1 className="font-semibold text-foreground">Finance Data Assistant</h1>
-          <p className="text-xs text-muted-foreground">
-            Ask questions about your holdings and trades
-          </p>
-        </div>
-      </div>
+      <header className="flex items-center justify-center py-3 border-b border-border">
+        <h1 className="text-lg font-semibold text-foreground">Finance Data Assistant</h1>
+      </header>
 
       {/* Data Stats */}
       {!isLoading && <DataStats holdings={holdings} trades={trades} />}
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto" ref={scrollRef}>
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
             <Loader2 className="w-8 h-8 animate-spin" />
             <p>Loading financial data...</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div>
             {messages.map(message => (
               <ChatMessage key={message.id} message={message} />
             ))}
           </div>
         )}
-      </ScrollArea>
+      </div>
 
       {/* Input */}
       <ChatInput onSend={handleSend} disabled={isLoading} />

@@ -12,41 +12,21 @@ export function DataStats({ holdings, trades }: DataStatsProps) {
     ...trades.map(t => t.PortfolioName),
   ]).size;
 
-  const totalPL = holdings.reduce((sum, h) => sum + h.PL_YTD, 0);
-
-  const formatCurrency = (value: number) => {
-    const abs = Math.abs(value);
-    if (abs >= 1000000) {
-      return `${value >= 0 ? '' : '-'}$${(abs / 1000000).toFixed(1)}M`;
-    }
-    if (abs >= 1000) {
-      return `${value >= 0 ? '' : '-'}$${(abs / 1000).toFixed(1)}K`;
-    }
-    return `$${value.toFixed(0)}`;
-  };
-
   return (
-    <div className="grid grid-cols-3 gap-3 p-4 border-b border-border">
-      <div className="flex items-center gap-2 px-3 py-2 bg-muted/30 rounded-lg">
-        <Database className="w-4 h-4 text-primary" />
-        <div>
-          <div className="text-xs text-muted-foreground">Holdings</div>
-          <div className="text-sm font-semibold">{holdings.length.toLocaleString()}</div>
-        </div>
+    <div className="flex items-center justify-center gap-6 py-3 border-b border-border text-sm text-muted-foreground">
+      <div className="flex items-center gap-2">
+        <Database className="w-4 h-4" />
+        <span><strong className="text-foreground">{holdings.length.toLocaleString()}</strong> Holdings</span>
       </div>
-      <div className="flex items-center gap-2 px-3 py-2 bg-muted/30 rounded-lg">
-        <TrendingUp className="w-4 h-4 text-primary" />
-        <div>
-          <div className="text-xs text-muted-foreground">Trades</div>
-          <div className="text-sm font-semibold">{trades.length.toLocaleString()}</div>
-        </div>
+      <div className="w-px h-4 bg-border" />
+      <div className="flex items-center gap-2">
+        <TrendingUp className="w-4 h-4" />
+        <span><strong className="text-foreground">{trades.length.toLocaleString()}</strong> Trades</span>
       </div>
-      <div className="flex items-center gap-2 px-3 py-2 bg-muted/30 rounded-lg">
-        <Briefcase className="w-4 h-4 text-primary" />
-        <div>
-          <div className="text-xs text-muted-foreground">Funds</div>
-          <div className="text-sm font-semibold">{uniqueFunds}</div>
-        </div>
+      <div className="w-px h-4 bg-border" />
+      <div className="flex items-center gap-2">
+        <Briefcase className="w-4 h-4" />
+        <span><strong className="text-foreground">{uniqueFunds}</strong> Funds</span>
       </div>
     </div>
   );
