@@ -1,7 +1,6 @@
-import { useState, KeyboardEvent } from 'react';
+import { useState, KeyboardEvent, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Send } from 'lucide-react';
+import { ArrowUp } from 'lucide-react';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -10,6 +9,14 @@ interface ChatInputProps {
 
 export function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [input, setInput] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+    }
+  }, [input]);
 
   const handleSend = () => {
     const trimmed = input.trim();
@@ -27,23 +34,32 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   };
 
   return (
-    <div className="flex gap-2 p-4 border-t border-border bg-background">
-      <Textarea
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Ask about holdings, trades, fund performance..."
-        className="min-h-[44px] max-h-32 resize-none bg-muted/50"
-        disabled={disabled}
-      />
-      <Button
-        onClick={handleSend}
-        disabled={!input.trim() || disabled}
-        size="icon"
-        className="flex-shrink-0 h-11 w-11"
-      >
-        <Send className="w-4 h-4" />
-      </Button>
+    <div className="border-t border-border bg-background">
+      <div className="max-w-3xl mx-auto p-4">
+        <div className="relative flex items-end bg-muted/50 rounded-2xl border border-border shadow-sm">
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Ask about holdings, trades, fund performance..."
+            className="flex-1 bg-transparent px-4 py-3 pr-12 text-[15px] placeholder:text-muted-foreground focus:outline-none resize-none max-h-[200px] min-h-[48px]"
+            disabled={disabled}
+            rows={1}
+          />
+          <Button
+            onClick={handleSend}
+            disabled={!input.trim() || disabled}
+            size="icon"
+            className="absolute right-2 bottom-2 h-8 w-8 rounded-lg"
+          >
+            <ArrowUp className="w-4 h-4" />
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          Answers are based only on your holdings and trades data
+        </p>
+      </div>
     </div>
   );
 }

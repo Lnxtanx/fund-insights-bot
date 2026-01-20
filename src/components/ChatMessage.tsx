@@ -14,7 +14,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
     const parts = content.split(/(\*\*[^*]+\*\*)/g);
     return parts.map((part, i) => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={i} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>;
+        return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>;
       }
       return <span key={i}>{part}</span>;
     });
@@ -23,28 +23,25 @@ export function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div
       className={cn(
-        'flex gap-3 p-4 rounded-lg',
-        isAssistant 
-          ? 'bg-muted/50' 
-          : 'bg-primary/10'
+        'py-6 px-4 md:px-0',
+        isAssistant ? 'bg-muted/40' : 'bg-transparent'
       )}
     >
-      <div
-        className={cn(
-          'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center',
-          isAssistant 
-            ? 'bg-primary text-primary-foreground' 
-            : 'bg-secondary text-secondary-foreground'
-        )}
-      >
-        {isAssistant ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-xs text-muted-foreground mb-1">
-          {isAssistant ? 'Finance Assistant' : 'You'}
+      <div className="max-w-3xl mx-auto flex gap-4">
+        <div
+          className={cn(
+            'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center',
+            isAssistant 
+              ? 'bg-primary text-primary-foreground' 
+              : 'bg-secondary text-secondary-foreground border border-border'
+          )}
+        >
+          {isAssistant ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
         </div>
-        <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
-          {parseContent(message.content)}
+        <div className="flex-1 min-w-0 pt-1">
+          <div className="text-[15px] text-foreground whitespace-pre-wrap leading-relaxed">
+            {parseContent(message.content)}
+          </div>
         </div>
       </div>
     </div>
