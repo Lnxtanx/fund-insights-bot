@@ -1,97 +1,79 @@
 # Fund Insights Bot
 
-A powerful, AI-driven financial analysis tool that uses **Hybrid RAG (Retrieval Augmented Generation)** to answer complex questions about your investment portfolio.
+**Live Demo:** [https://fund-insights-bot.vercel.app/](https://fund-insights-bot.vercel.app/)
 
 **Built by [Vivek Kumar Yadav](https://cv.vivekmind.com)**
 GitHub: [Link](https://github.com/Lnxtanx/fund-insights-bot)
 
 ---
 
-## 🚀 How It Works
+## 🚀 Architectural Deep Dive: Hybrid RAG
 
-This project moves beyond simple "send everything to GPT" approaches by implementing a smart **Client-Side RAG Architecture**. This ensures scalability, reduces costs, and avoids token limits while maintaining high precision.
+This project implements a sophisticated **Hybrid Retrieval Augmented Generation (RAG)** architecture designed to solve the two biggest challenges in financial AI: **Accuracy** (handling specific numbers) and **Scalability** (handling large datasets without exorbitant costs).
 
-### The Architecture: "Hybrid RAG"
+### The Challenge
+Standard RAG systems often fail at "Global Questions" (e.g., "What is my total P&L?"). They retrieve 10 random rows and try to sum them up, leading to wrong answers. Conversely, dumping the *entire* database into the AI context window is inaccurate for specific queries and extremely expensive.
 
-The system combines two powerful techniques to answer questions:
+### The Solution: Two-Layer Intelligence
 
-1.  **Global Context Layer (The "Big Picture")**
-    *   **What it does**: Instantly calculates high-level statistics like Total P&L, Total Market Value, and Trade Counts directly in TypeScript (`src/lib/dataProcessor.ts`).
-    *   **Why**: Standard RAG fails at "counting" (e.g., "How many trades?"). This layer ensures the AI *always* knows the overall state of the portfolio.
+This application uses a dual-layer approach to ensure 100% accuracy for both high-level stats and deep-dive specifics.
 
-2.  **Vector Retrieval Layer (The "Details")**
-    *   **What it does**:
-        1.  **Indexing**: On page load, `src/lib/ragEngine.ts` converts every Holding and Trade record into a vector embedding using OpenAI's `text-embedding-3-small`.
-        2.  **Storage**: These vectors are stored in-memory (Client Side).
-        3.  **Search**: When you ask a question (e.g., "Price of Fund X"), the system performs a **Cosine Similarity Search** to find the top 30 most relevant rows.
-    *   **Why**: Instead of sending 300KB of raw CSV data to the LLM (expensive & slow), we only send the ~2KB that matters.
+#### Layer 1: The Global Context Engine (Deterministic)
+Before the AI even sees the question, a specialized TypeScript engine (`dataProcessor.ts`) scans the entire dataset in real-time.
+*   **What it does**: Calculates strict mathematical aggregations: Total Holdings, Total Trades, Portfolio Market Value, and P&L.
+*   **Why**: LLMs are terrible at math. We don't ask the AI to calculate P&L; we *give* it the calculated P&L as an immutable fact.
 
-### Data Flow Pipeline
+#### Layer 2: The Semantic Vector Index (Probabilistic)
+For specific questions like "Why did funds X and Y drop?", we use a Vector Search Engine (`ragEngine.ts`).
+1.  **Embedding**: On load, every trade and holding is converted into a 1536-dimensional vector using OpenAI's `text-embedding-3-small`.
+2.  **Indexing**: These vectors are stored in an in-memory client-side vector store (optimized with IndexedDB for persistence).
+3.  **Retrieval**: When a user asks a question, we compute the **Cosine Similarity** between the question's vector and our data vectors.
+4.  **Rank & Filter**: The top 30 most relevant records are extracted and formatted into a concise context block.
+
+### The Hybrid Prompt
+The final prompt sent to GPT-4 is a carefully constructed hybrid:
+
+> "Here are the **Global Stats** (Total P&L is $1.2M)...
+> And here are the **30 most relevant records** for this specific question...
+> Now answer the user's question."
+
+This allows the AI to vaguely "know" everything (Global Stats) while knowing "everything" about the specific topic asked (Vector Retrieval).
+
+---
+
+## 🛠️ Data Pipeline Visualization
+
 ```mermaid
-graph LR
-    A[User Query] --> B{Router}
-    B -->|Global Stats| C[Data Processor]
-    B -->|Semantic Search| D[Vector Store]
-    C --> E[Prompt Construction]
-    D --> E
-    E --> F[GPT-4 Turbo]
-    F --> G[Answer]
+graph TD
+    User[User Input] --> Router{Query Intent}
+    
+    subgraph "Layer 1: Deterministic"
+    Router -->|Aggregations| Calc[DataProcessor Engine]
+    Calc --> Stats[Global Stats Object]
+    end
+    
+    subgraph "Layer 2: Semantic"
+    Router -->|Specifics| Embed[Embedding Model]
+    Embed --> VectorDB[(Vector Store)]
+    VectorDB -->|Top K Retrieval| Context[Relevant Rows]
+    end
+    
+    Stats --> Synthesizer[Hybrid Prompt Builder]
+    Context --> Synthesizer
+    
+    Synthesizer --> GPT4[GPT-4 Turbo]
+    GPT4 --> Response[Final Answer]
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## 📦 Tech Stack
 
+- **Runtime**: Node.js (v18+)
 - **Frontend**: React, Vite, TypeScript
-- **Style**: Tailwind CSS, shadcn/ui
-- **AI Core**:
-    - **LLM**: GPT-4 Turbo (for reasoning)
-    - **Embeddings**: text-embedding-3-small (for retrieval)
-- **Data Engineering**: Client-side In-Memory Vector Store
-
----
-
-## 📦 Getting Started
-
-### Prerequisites
-- Node.js (v18+)
-- OpenAI API Key
-
-### Installation
-
-1. **Clone the repo**
-   ```bash
-   git clone <repository-url>
-   cd fund-insights-bot
-   ```
-
-2. **Install Dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up Environment**
-   Create a `.env` file in the root:
-   ```env
-   VITE_OPENAI_API_KEY=sk-your-openai-key-here
-   ```
-
-4. **Run Locally**
-   ```bash
-   npm run dev
-   ```
-   Open `http://localhost:8080`.
-
----
-
-## 🧠 Why This Approach?
-
-| Feature | Old Approach (Full Context) | New Approach (Hybrid RAG) |
-| :--- | :--- | :--- |
-| **Data Limit** | ~3,000 records (128k tokens) | **Unlimited** (Scales indefinitely) |
-| **Cost** | ~$0.10 per query | **~$0.001 per query** (99% Cheaper) |
-| **Speed** | Slow (Processing 300KB text) | **Fast** (Processing 2KB text) |
-| **Accuracy** | High | **High** (Combines Precision Stats + Semantic Search) |
+- **Styling**: Tailwind CSS, Shadcn UI
+- **AI/LLM**: OpenAI GPT-4 Turbo
+- **Vector Engine**: Client-side In-Memory Store (with IndexedDB caching)
 
 ---
 
