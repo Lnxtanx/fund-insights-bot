@@ -30,10 +30,14 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
 // Generate Embedding for a single string
 async function getEmbedding(text: string): Promise<number[]> {
 
-    const response = await fetch('/api/embeddings', {
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+    if (!apiKey) throw new Error("Missing OpenAI API Key");
+
+    const response = await fetch('https://api.openai.com/v1/embeddings', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
             input: text,
@@ -140,10 +144,13 @@ export async function generateIndex(holdings: Holding[], trades: Trade[], onProg
         const batch = items.slice(i, i + BATCH_SIZE);
 
         try {
-            const response = await fetch('/api/embeddings', {
+            const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+
+            const response = await fetch('https://api.openai.com/v1/embeddings', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify({
                     input: batch.map(b => b.text),

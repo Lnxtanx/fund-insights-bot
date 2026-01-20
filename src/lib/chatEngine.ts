@@ -75,10 +75,13 @@ export async function processQuestionWithAI(
   try {
     // Only using gpt-4o-mini or turbo is fine now because context is small!
     // Only using gpt-4o-mini or turbo is fine now because context is small!
-    const response = await fetch('/api/chat', {
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
         model: 'gpt-4o', // or gpt-4-turbo
